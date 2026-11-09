@@ -1,4 +1,3 @@
-#define _POSIX_C_SOURCE 200809L
 #include "cpu_common.h"
 
 #include <ctype.h>
@@ -51,12 +50,39 @@ static int hex_digit(int c)
     return -1;
 }
 
+/*
+ * Portable replacement for POSIX getline(): reads one line from `input` into
+ * `*line`, keeping the terminating '\n' when present, and NUL-terminates it.
+ * The buffer grows on demand, so lines of any length are supported.
+ * Returns 1 when a line was read, 0 at end of file, and -1 when the buffer
+ * could not be grown (out of memory).
+ */
+static int read_line(char **line, size_t *capacity, FILE *input)
+{
+    size_t length = 0;
+    int c;
+    while ((c = fgetc(input)) != EOF) {
+        if (length + 2 > *capacity) {
+            size_t new_capacity = *capacity ? *capacity * 2 : 128;
+            char *grown = realloc(*line, new_capacity);
+            if (!grown) return -1;
+            *line = grown;
+            *capacity = new_capacity;
+        }
+        (*line)[length++] = (char)c;
+        if (c == '\n') break;
+    }
+    if (length == 0 && c == EOF) return 0;
+    (*line)[length] = '\0';
+    return 1;
+}
+
 static int load_program(CPU *cpu, FILE *input)
 {
     char *line = NULL;
     size_t capacity = 0, line_number = 0;
-    int result = 0;
-    while (getline(&line, &capacity, input) != -1) {
+    int result = 0, status = 0;
+    while ((status = read_line(&line, &capacity, input)) > 0) {
         line_number++;
         char *comment = strchr(line, '|');
         if (comment) *comment = '\0';
@@ -89,6 +115,10 @@ invalid:
         fprintf(stderr, "Invalid .yo input at line %zu\n", line_number);
         result = -1;
         break;
+    }
+    if (status < 0) {
+        fputs("Out of memory reading .yo input\n", stderr);
+        result = -1;
     }
     if (ferror(input)) {
         perror("Reading .yo input");
