@@ -2,7 +2,7 @@
 
 ## 简介
 
-在本实验中，你将实现一个 Y86-64 指令集 CPU 模拟器。此仓库中，我们在 `cpu.c` 提供六个待完成的阶段，`cpu_common.h` 与 `cpu_common.c` 中已经为你搭建好了文件解析器（Parser）和有限状态机（FSM）的主循环骨架。你的任务是补全各个执行阶段的核心数据通路逻辑。
+在本实验中，你将实现一个 Y86-64 指令集 CPU 模拟器。此仓库中，我们在 `cpu.c` 提供六个待完成的阶段，`cpu_common.h` 与 `cpu_common.c` 中已经为你搭建好了文件解析器（Parser）和主循环骨架。你的任务是补全各个执行阶段的核心数据通路逻辑。
 
 ```bash
 .
@@ -17,12 +17,11 @@
 
 ## 构建和测试
 
-需要 C11 编译器、make、Python 3 和支持 `getline` 的环境（如 Linux 或 macOS）。在仓库根目录运行：
+需要 C 编译器、make、Python 3。在仓库根目录运行：
 
 ```sh
 make
 make test                 # 评测 cpu.c
-./cpu_answer < test/prog1.yo
 python3 test.py --bin ./cpu --save_mid
 ```
 
